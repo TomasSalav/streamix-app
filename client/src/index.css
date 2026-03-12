@@ -1,0 +1,24 @@
+html,
+body,
+#root {
+  height: 100vh;
+  width: 100vw;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  font-family: 'Montserrat';
+}
+
+:root {
+  --transparent-red: rgba(246, 48, 73, 0.25);
+  --light-red: #F63049;
+  --red: #D02752;
+  --dark-red: #8A244B;
+  --bg-black: #111F35;
+  --bg-card: #1A2840;
+}
+
+body {
+  margin: 0;
+  background-color: var(--bg-black);
+}

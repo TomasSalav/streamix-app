@@ -1,0 +1,93 @@
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 999;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    background-color: var(--bg-black);
+    border-bottom: 1px solid var(--light-red);
+}
+
+.navbar-logo {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--light-red);
+}
+
+.navbar-logo h1 {
+    margin: 0;
+}
+
+.navbar-links {
+    display: flex;
+    gap: 1rem;
+    flex-direction: row;
+    align-items: center;
+    color: white;
+}
+
+.navbar-links i {
+    font-size: 1.2rem;
+    opacity: 0.5;
+}
+
+.navbar-links input {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  padding: 1rem 1.2rem;
+  color: white;
+  font-size: 1rem;
+  width: 24rem;
+}
+
+.navbar-links input:focus {
+  outline: none;
+  border-color: var(--light-red);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.profile {
+    display: flex;
+    gap: 1rem;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+.profile Button {
+    height: 3rem;
+    padding: 0 1.5rem;
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    width: auto;
+}
+
+.profile .profile-picture {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    background-color: var(--light-red);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+
+.profile .profile-picture:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(246, 48, 73, 0.4);
+}
+
+.profile .profile-picture:active {
+  transform: translateY(0);
+}
