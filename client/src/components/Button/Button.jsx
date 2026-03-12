@@ -1,6 +1,7 @@
 import './Button.css';
 
 const Button = ({ children, onClick, type = 'button', className = '', ...props }) => {
+    // Componente de botón reutilizable
     return (
         <button 
             type={type} 

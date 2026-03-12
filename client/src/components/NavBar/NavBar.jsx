@@ -1,7 +1,12 @@
 import Button from '../Button/Button';
+import { useNavigate } from "react-router-dom";
 import './NavBar.css';
 
 const NavBar = () => {
+    // Componente de barra de navegación
+
+    const navigate = useNavigate();
+
     return (
         <nav className="navbar">
             <div className="navbar-logo">
@@ -12,12 +17,11 @@ const NavBar = () => {
                 <input type="text" placeholder='¿Qué quieres ver hoy?'/>
             </div>
             <div className="profile">
-                <Button>
+                <Button onClick={() => navigate('/login')}>
                     <i class="fa-solid fa-arrow-right-from-bracket"></i>
                     <p>Log Out</p>                    
                 </Button>
                 <div className="profile-picture">
-                    
                 </div>
             </div>
         </nav>
