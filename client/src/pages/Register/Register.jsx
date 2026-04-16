@@ -1,15 +1,44 @@
+import { useState } from 'react';
 import PixelSnow from '../../components/PixelSnow/PixelSnow';
 import SpotlightCard from '../../components/SpotlightCard/SpotlightCard';
 import { useNavigate } from 'react-router-dom';
 import Button from '../../components/Button/Button';
+import { mockRegister } from '../../services/api';
 import './Register.css';
 
 const Register = () => {
     // Página para crear un usuario
     const navigate = useNavigate();
 
-    const handleSubmit = (e) => {
+    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
+        setError(null);
+        
+        if (password !== confirmPassword) {
+            setError("Las contraseñas no coinciden");
+            return;
+        }
+
+        setLoading(true);
+
+        try {
+            const res = await mockRegister(username, email, password);
+            if (res.success) {
+                // Ir a login exitosamente
+                navigate('/login');
+            }
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -36,20 +65,49 @@ const Register = () => {
                     <p>Crea tu cuenta!</p>
                 </div>
                 <form className="register-form" onSubmit={handleSubmit}>
+                    {error && <div style={{color: '#f63049', marginBottom: '10px', textAlign: 'center'}}>{error}</div>}
                     <div className="form-group">
                         <label>Usuario</label>
-                        <input type="text" placeholder="Cree su usuario..." required />
+                        <input 
+                            type="text" 
+                            placeholder="Cree su usuario..." 
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                            required 
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label>Email</label>
+                        <input 
+                            type="email" 
+                            placeholder="Ingrese su correo..." 
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required 
+                        />
                     </div>
                     <div className="form-group">
                         <label>Contraseña</label>
-                        <input type="password" placeholder="Cree su contraseña..." required />
+                        <input 
+                            type="password" 
+                            placeholder="Cree su contraseña..." 
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required 
+                        />
                     </div>
                     <div className="form-group">
                         <label>Confirmar Contraseña</label>
-                        <input type="password" placeholder="Confirme su contraseña..." required />
+                        <input 
+                            type="password" 
+                            placeholder="Confirme su contraseña..." 
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            required 
+                        />
                     </div>
-                    <Button type="submit" className="register-button">
-                        Registrarse
+                    <Button type="submit" className="register-button" disabled={loading}>
+                        {loading ? 'Cargando...' : 'Registrarse'}
                     </Button>
                 </form>
                 <div className="register-footer">   
