@@ -1,13 +1,10 @@
 from .extensions import db, cors, migrate
 from dotenv import load_dotenv
 import os
-
 load_dotenv()
-
 """
     Database, Cors and Migrate configuration
 """
-
 class Config:
     try:
         SECRET_KEY = os.getenv("SECRET_KEY")
