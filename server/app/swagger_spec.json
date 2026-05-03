@@ -1,0 +1,324 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Streamix API",
+    "description": "API para plataforma de videos tipo YouTube",
+    "version": "1.0.0"
+  },
+  "basePath": "/api",
+  "securityDefinitions": {
+    "Bearer": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header",
+      "description": "Token JWT. Ejemplo: Authorization: Bearer <token>"
+    }
+  },
+  "security": [{"Bearer": []}],
+  "paths": {
+    "/auth/signup": {
+      "post": {
+        "tags": ["Autenticacion"],
+        "summary": "Registrar nuevo usuario",
+        "description": "Crea una nueva cuenta de usuario y retorna token JWT",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "parameters": [{
+          "in": "body",
+          "name": "body",
+          "required": true,
+          "schema": {
+            "type": "object",
+            "required": ["username", "email", "password"],
+            "properties": {
+              "username": {"type": "string", "example": "usuario123"},
+              "email": {"type": "string", "example": "correo@ejemplo.com"},
+              "password": {"type": "string", "example": "password123"},
+              "avatar_url": {"type": "string"},
+              "bio": {"type": "string"}
+            }
+          }
+        }],
+        "responses": {
+          "201": {"description": "Usuario creado exitosamente"},
+          "400": {"description": "Datos inválidos o email/username ya existe"}
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": ["Autenticacion"],
+        "summary": "Iniciar sesión",
+        "description": "Inicia sesión con email y password, retorna token JWT",
+        "consumes": ["application/json"],
+        "parameters": [{
+          "in": "body",
+          "name": "body",
+          "required": true,
+          "schema": {
+            "type": "object",
+            "required": ["email", "password"],
+            "properties": {
+              "email": {"type": "string"},
+              "password": {"type": "string"}
+            }
+          }
+        }],
+        "responses": {
+          "200": {"description": "Inicio de sesión exitoso"},
+          "401": {"description": "Credenciales inválidas"}
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "tags": ["Autenticacion"],
+        "summary": "Cerrar sesión",
+        "security": [{"Bearer": []}],
+        "responses": {"200": {"description": "Sesión cerrada exitosamente"}}
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "tags": ["Autenticacion"],
+        "summary": "Obtener usuario actual",
+        "security": [{"Bearer": []}],
+        "responses": {"200": {"description": "Datos del usuario actual"}}
+      }
+    },
+    "/users": {
+      "get": {
+        "tags": ["Usuarios"],
+        "summary": "Obtener todos los usuarios",
+        "responses": {"200": {"description": "Lista de usuarios"}}
+      },
+      "post": {
+        "tags": ["Usuarios"],
+        "summary": "Crear usuario (admin)",
+        "parameters": [{
+          "in": "body",
+          "name": "body",
+          "required": true,
+          "schema": {
+            "type": "object",
+            "required": ["username", "email", "password"],
+            "properties": {
+              "username": {"type": "string"},
+              "email": {"type": "string"},
+              "password": {"type": "string"}
+            }
+          }
+        }],
+        "responses": {"201": {"description": "Usuario creado"}}
+      }
+    },
+    "/users/{user_id}": {
+      "get": {
+        "tags": ["Usuarios"],
+        "summary": "Obtener usuario por ID",
+        "parameters": [{"name": "user_id", "in": "path", "required": true, "type": "integer"}],
+        "responses": {"200": {"description": "Usuario encontrado"}, "404": {"description": "Usuario no encontrado"}}
+      },
+      "put": {
+        "tags": ["Usuarios"],
+        "summary": "Actualizar usuario",
+        "security": [{"Bearer": []}],
+        "parameters": [{"name": "user_id", "in": "path", "required": true, "type": "integer"}],
+        "responses": {"200": {"description": "Usuario actualizado"}, "403": {"description": "No autorizado"}, "404": {"description": "Usuario no encontrado"}}
+      },
+      "delete": {
+        "tags": ["Usuarios"],
+        "summary": "Eliminar usuario",
+        "security": [{"Bearer": []}],
+        "parameters": [{"name": "user_id", "in": "path", "required": true, "type": "integer"}],
+        "responses": {"200": {"description": "Usuario eliminado"}, "403": {"description": "No autorizado"}}
+      }
+    },
+    "/videos": {
+      "get": {
+        "tags": ["Videos"],
+        "summary": "Obtener todos los videos",
+        "parameters": [
+          {"name": "page", "in": "query", "type": "integer", "default": 1},
+          {"name": "per_page", "in": "query", "type": "integer", "default": 10}
+        ],
+        "responses": {"200": {"description": "Lista de videos"}}
+      },
+      "post": {
+        "tags": ["Videos"],
+        "summary": "Subir video",
+        "security": [{"Bearer": []}],
+        "consumes": ["application/json"],
+        "parameters": [{
+          "in": "body",
+          "name": "body",
+          "required": true,
+          "schema": {
+            "type": "object",
+            "required": ["title", "url"],
+            "properties": {
+              "title": {"type": "string"},
+              "description": {"type": "string"},
+              "url": {"type": "string"},
+              "thumbnail_url": {"type": "string"},
+              "duration": {"type": "integer"}
+            }
+          }
+        }],
+        "responses": {"201": {"description": "Video creado"}}
+      }
+    },
+    "/videos/{video_id}": {
+      "get": {
+        "tags": ["Videos"],
+        "summary": "Obtener video por ID",
+        "parameters": [{"name": "video_id", "in": "path", "required": true, "type": "integer"}],
+        "responses": {"200": {"description": "Video encontrado"}, "404": {"description": "Video no encontrado"}}
+      },
+      "put": {
+        "tags": ["Videos"],
+        "summary": "Actualizar video",
+        "security": [{"Bearer": []}],
+        "parameters": [{"name": "video_id", "in": "path", "required": true, "type": "integer"}],
+        "responses": {"200": {"description": "Video actualizado"}, "403": {"description": "No autorizado"}}
+      },
+      "delete": {
+        "tags": ["Videos"],
+        "summary": "Eliminar video",
+        "security": [{"Bearer": []}],
+        "parameters": [{"name": "video_id", "in": "path", "required": true, "type": "integer"}],
+        "responses": {"200": {"description": "Video eliminado"}, "403": {"description": "No autorizado"}}
+      }
+    },
+    "/users/{user_id}/videos": {
+      "get": {
+        "tags": ["Videos"],
+        "summary": "Obtener videos de usuario",
+        "parameters": [{"name": "user_id", "in": "path", "required": true, "type": "integer"}],
+        "responses": {"200": {"description": "Videos del usuario"}}
+      }
+    },
+    "/comments": {
+      "get": {
+        "tags": ["Comentarios"],
+        "summary": "Obtener todos los comentarios",
+        "parameters": [
+          {"name": "video_id", "in": "query", "type": "integer"},
+          {"name": "page", "in": "query", "type": "integer"}
+        ],
+        "responses": {"200": {"description": "Lista de comentarios"}}
+      }
+    },
+    "/comments/{comment_id}": {
+      "get": {
+        "tags": ["Comentarios"],
+        "summary": "Obtener comentario por ID",
+        "parameters": [{"name": "comment_id", "in": "path", "required": true, "type": "integer"}],
+        "responses": {"200": {"description": "Comentario encontrado"}}
+      },
+      "put": {
+        "tags": ["Comentarios"],
+        "summary": "Actualizar comentario",
+        "security": [{"Bearer": []}],
+        "parameters": [{"name": "comment_id", "in": "path", "required": true, "type": "integer"}],
+        "responses": {"200": {"description": "Comentario actualizado"}, "403": {"description": "No autorizado"}}
+      },
+      "delete": {
+        "tags": ["Comentarios"],
+        "summary": "Eliminar comentario",
+        "security": [{"Bearer": []}],
+        "parameters": [{"name": "comment_id", "in": "path", "required": true, "type": "integer"}],
+        "responses": {"200": {"description": "Comentario eliminado"}, "403": {"description": "No autorizado"}}
+      }
+    },
+    "/videos/{video_id}/comments": {
+      "post": {
+        "tags": ["Comentarios"],
+        "summary": "Crear comentario",
+        "security": [{"Bearer": []}],
+        "parameters": [{"name": "video_id", "in": "path", "required": true, "type": "integer"}],
+        "responses": {"201": {"description": "Comentario creado"}, "404": {"description": "Video no encontrado"}}
+      }
+    },
+    "/videos/{video_id}/reactions": {
+      "get": {
+        "tags": ["Reacciones"],
+        "summary": "Obtener reacciones del video",
+        "parameters": [{"name": "video_id", "in": "path", "required": true, "type": "integer"}],
+        "responses": {"200": {"description": "Lista de reacciones"}}
+      },
+      "post": {
+        "tags": ["Reacciones"],
+        "summary": "Reaccionar al video (like/dislike)",
+        "security": [{"Bearer": []}],
+        "parameters": [{"name": "video_id", "in": "path", "required": true, "type": "integer"}],
+        "responses": {"201": {"description": "Reacción creada"}, "200": {"description": "Reacción actualizada o removida"}}
+      }
+    },
+    "/users/{user_id}/subscribers": {
+      "get": {
+        "tags": ["Suscripciones"],
+        "summary": "Obtener suscriptores del usuario",
+        "parameters": [{"name": "user_id", "in": "path", "required": true, "type": "integer"}],
+        "responses": {"200": {"description": "Lista de suscriptores"}}
+      }
+    },
+    "/subscriptions": {
+      "get": {
+        "tags": ["Suscripciones"],
+        "summary": "Obtener mis suscripciones",
+        "security": [{"Bearer": []}],
+        "responses": {"200": {"description": "Mis suscripciones"}}
+      }
+    },
+    "/users/{user_id}/subscribe": {
+      "post": {
+        "tags": ["Suscripciones"],
+        "summary": "Suscribirse/Desuscribirse al usuario",
+        "security": [{"Bearer": []}],
+        "parameters": [{"name": "user_id", "in": "path", "required": true, "type": "integer"}],
+        "responses": {"201": {"description": "Suscrito"}, "200": {"description": "Desuscrito"}, "400": {"description": "No puedes suscribirte a ti mismo"}}
+      }
+    },
+    "/users/{user_id}/unsubscribe": {
+      "post": {
+        "tags": ["Suscripciones"],
+        "summary": "Cancelar suscripción",
+        "security": [{"Bearer": []}],
+        "parameters": [{"name": "user_id", "in": "path", "required": true, "type": "integer"}],
+        "responses": {"200": {"description": "Suscripción cancelada"}}
+      }
+    },
+    "/users/{user_id}/is_subscribed": {
+      "get": {
+        "tags": ["Suscripciones"],
+        "summary": "Verificar si está suscrito",
+        "security": [{"Bearer": []}],
+        "parameters": [{"name": "user_id", "in": "path", "required": true, "type": "integer"}],
+        "responses": {"200": {"description": "Estado de suscripción"}}
+      }
+    },
+    "/videos/{video_id}/views": {
+      "get": {
+        "tags": ["Vistas"],
+        "summary": "Obtener vistas del video",
+        "parameters": [{"name": "video_id", "in": "path", "required": true, "type": "integer"}],
+        "responses": {"200": {"description": "Lista de vistas"}}
+      },
+      "post": {
+        "tags": ["Vistas"],
+        "summary": "Registrar vista",
+        "security": [{"Bearer": []}],
+        "parameters": [{"name": "video_id", "in": "path", "required": true, "type": "integer"}],
+        "responses": {"201": {"description": "Vista registrada"}, "200": {"description": "Vista actualizada"}}
+      },
+      "delete": {
+        "tags": ["Vistas"],
+        "summary": "Eliminar vista",
+        "security": [{"Bearer": []}],
+        "parameters": [{"name": "video_id", "in": "path", "required": true, "type": "integer"}],
+        "responses": {"200": {"description": "Vista eliminada"}}
+      }
+    }
+  }
+}

@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 import os
 load_dotenv()
 """
-    Database, Cors and Migrate configuration
+    Configuración de la base de datos
 """
 class Config:
     try:
@@ -11,4 +11,4 @@ class Config:
         SQLALCHEMY_DATABASE_URI = f"postgresql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@{os.getenv('DB_HOST')}/{os.getenv('DB_NAME')}"
         SQLALCHEMY_TRACK_MODIFICATIONS = False
     except Exception as e:
-        print(f"Error loading configuration: {e}")
+        print(f"Error cargando la configuración: {e}")

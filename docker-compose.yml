@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  # Base de datos PostgreSQL
+  db:
+    image: postgres:15-alpine
+    container_name: streamix-db
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Servidor Flask (API)
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: streamix-server
+    env_file:
+      - .env
+    environment:
+      SECRET_KEY: ${SECRET_KEY}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: ${DB_HOST}
+      DB_NAME: ${DB_NAME}
+    ports:
+      - "5050:5050"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./server:/app
+
+  # Frontend React
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: streamix-client
+    env_file:
+      - .env
+    environment:
+      VITE_API_URL: ${VITE_API_URL}
+    ports:
+      - "5173:5173"
+    depends_on:
+      - server
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+
+volumes:
+  postgres_data:
