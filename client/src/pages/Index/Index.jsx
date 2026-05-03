@@ -2,30 +2,25 @@ import { useState, useEffect, useMemo } from "react";
 import PixelSnow from "../../components/PixelSnow/PixelSnow";
 import NavBar from "../../components/NavBar/NavBar";
 import VideoCard from "../../components/VideoCard/VideoCard";
+import useApi from "../../services/api";
 import './Index.css';
 
 // Pantalla de inicio con presentación de videos
 const Index = () => {
+    const { loading, error, getVideos } = useApi();
     const [videos, setVideos] = useState([]);
-    const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
 
-    // useEffect(() => {
-    //     const loadVideos = async () => {
-    //         try {
-    //             const res = await mockFetchVideos();
-    //             if (res.success) {
-    //                 setVideos(res.data);
-    //             }
-    //         } catch (err) {
-    //             console.error("Error fetching videos:", err);
-    //         } finally {
-    //             setLoading(false);
-    //         }
-    //     };
+    useEffect(() => {
+        const loadVideos = async () => {
+            const res = await getVideos();
+            if (res?.videos) {
+                setVideos(res.videos);
+            }
+        };
 
-    //     loadVideos();
-    // }, []);
+        loadVideos();
+    }, []);
 
     const filteredVideos = useMemo(() => {
         if (!searchTerm) return videos;

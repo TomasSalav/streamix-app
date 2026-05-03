@@ -2,7 +2,6 @@ from ..extensions import db
 from sqlalchemy.orm import mapped_column, Mapped, relationship
 from datetime import datetime
 
-
 class Video(db.Model):
     __tablename__ = 'videos'
 
@@ -35,5 +34,9 @@ class Video(db.Model):
             'likes_count': self.likes_count,
             'dislikes_count': self.dislikes_count,
             'id_user': self.id_user,
-            'created_at': self.created_at.isoformat() if self.created_at else None
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'user': {
+                'username': self.user.username if self.user else 'Usuario Desconocido',
+                'avatar_url': self.user.avatar_url if self.user else None
+            }
         }

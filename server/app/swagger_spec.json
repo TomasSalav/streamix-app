@@ -146,26 +146,55 @@
       },
       "post": {
         "tags": ["Videos"],
-        "summary": "Subir video",
+        "summary": "Subir video con miniatura",
+        "description": "Sube un nuevo video con su archivo de video y miniatura. Requiere autenticación.",
         "security": [{"Bearer": []}],
-        "consumes": ["application/json"],
-        "parameters": [{
-          "in": "body",
-          "name": "body",
-          "required": true,
-          "schema": {
-            "type": "object",
-            "required": ["title", "url"],
-            "properties": {
-              "title": {"type": "string"},
-              "description": {"type": "string"},
-              "url": {"type": "string"},
-              "thumbnail_url": {"type": "string"},
-              "duration": {"type": "integer"}
-            }
+        "consumes": ["multipart/form-data"],
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "in": "formData",
+            "name": "title",
+            "type": "string",
+            "required": true,
+            "description": "Título del video"
+          },
+          {
+            "in": "formData",
+            "name": "description",
+            "type": "string",
+            "description": "Descripción del video (opcional)"
+          },
+          {
+            "in": "formData",
+            "name": "video",
+            "type": "file",
+            "required": true,
+            "description": "Archivo de video (mp4, mkv, webm, avi)"
+          },
+          {
+            "in": "formData",
+            "name": "thumbnail",
+            "type": "file",
+            "required": true,
+            "description": "Archivo de miniatura (png, jpg, jpeg, webp)"
           }
-        }],
-        "responses": {"201": {"description": "Video creado"}}
+        ],
+        "responses": {
+          "201": {
+            "description": "Video creado exitosamente",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {"type": "string", "example": "Video created"},
+                "video": {"type": "object"}
+              }
+            }
+          },
+          "400": {"description": "Datos inválidos, archivos faltantes o formatos no permitidos"},
+          "403": {"description": "No autorizado"},
+          "500": {"description": "Error del servidor"}
+        }
       }
     },
     "/videos/{video_id}": {
@@ -253,6 +282,48 @@
         "security": [{"Bearer": []}],
         "parameters": [{"name": "video_id", "in": "path", "required": true, "type": "integer"}],
         "responses": {"201": {"description": "Reacción creada"}, "200": {"description": "Reacción actualizada o removida"}}
+      }
+    },
+    "/users/{user_id}/avatar": {
+      "post": {
+        "tags": ["Usuarios"],
+        "summary": "Subir avatar de usuario",
+        "description": "Sube una imagen de perfil (avatar) para el usuario. Solo el propio usuario puede subir su avatar.",
+        "security": [{"Bearer": []}],
+        "consumes": ["multipart/form-data"],
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "ID del usuario"
+          },
+          {
+            "in": "formData",
+            "name": "file",
+            "type": "file",
+            "required": true,
+            "description": "Archivo de imagen (png, jpg, jpeg, gif, webp)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Avatar subido exitosamente",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {"type": "string", "example": "Avatar uploaded successfully"},
+                "avatar_url": {"type": "string", "example": "http://localhost:5000/public/profiles/1/avatar.jpg"},
+                "usuario": {"type": "object"}
+              }
+            }
+          },
+          "400": {"description": "Archivo inválido o tipo no permitido"},
+          "403": {"description": "No autorizado"},
+          "500": {"description": "Error del servidor"}
+        }
       }
     },
     "/users/{user_id}/subscribers": {

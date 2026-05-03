@@ -1,32 +1,39 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import NavBar from '../../components/NavBar/NavBar';
 import PixelSnow from '../../components/PixelSnow/PixelSnow';
+import useApi from '../../services/api';
 import './Watch.css';
 
-// Página de reproducción de videos (Mock)
+// Página de reproducción de videos
 const Watch = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const { loading, error, getVideoById, getVideos } = useApi();
     const [video, setVideo] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const [suggestedVideos, setSuggestedVideos] = useState([]);
 
-    // useEffect(() => {
-    //     const fetchVideo = async () => {
-    //         try {
-    //             const res = await mockGetVideo(id);
-    //             if (res.success) {
-    //                 setVideo(res.data);
-    //             }
-    //         } catch (err) {
-    //             setError(err.message);
-    //         } finally {
-    //             setLoading(false);
-    //         }
-    //     };
-    //     fetchVideo();
-    // }, [id]);
+    useEffect(() => {
+        // Obtenemos los detalles del video principal por su ID
+        const fetchVideo = async () => {
+            const res = await getVideoById(id);
+            if (res?.video) {
+                setVideo(res.video);
+            }
+        };
+
+        // Obtenemos una lista de otros videos para la barra lateral (sugerencias)
+        const fetchSuggested = async () => {
+            const res = await getVideos(1, 10);
+            if (res?.videos) {
+                // Filtramos el video que estamos viendo actualmente de las sugerencias
+                setSuggestedVideos(res.videos.filter(v => v.id.toString() !== id));
+            }
+        };
+
+        fetchVideo();
+        fetchSuggested();
+    }, [id]);
 
     if (loading) {
         return (
@@ -41,18 +48,10 @@ const Watch = () => {
         return (
             <div className="watch-container">
                 <NavBar onSearch={(q) => { if(q) navigate('/'); }} />
-                <div style={{color: 'white', textAlign: 'center', marginTop: '100px'}}>Error: {error || "No encontrado"}</div>
+                <div style={{color: 'white', textAlign: 'center', marginTop: '100px'}}>Error: {error || "Video no encontrado"}</div>
             </div>
         );
     }
-
-    // Configuración de la ip del CDN
-
-    const baseUrl = (typeof process !== 'undefined' && process.env && process.env.VITE_CDN_URL) || 
-                    (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_CDN_URL) || 
-                    "https://www.youtube.com/embed/";
-
-    const videoUrl = `${baseUrl}${video.link}`;
 
     return (
         <div className="watch-container">
@@ -75,25 +74,55 @@ const Watch = () => {
             
             <NavBar onSearch={(q) => { if(q) navigate('/'); }} />
 
-            <div className="watch-content">
-                <div className="video-player-wrapper">
-                    <iframe 
-                        className="video-iframe"
-                        src={videoUrl}
-                        title={video.title}
-                        frameBorder="0" 
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                        allowFullScreen
-                    ></iframe>
-                </div>
-                <div className="video-details-section">
-                    <h1 className="watch-title">{video.title}</h1>
-                    <div className="watch-metadata">
-                        <p>Subido el {new Date(video.created_at).toLocaleDateString()}</p>
-                        <p>ID del Creador: {video.id_user}</p>
+            <div className="watch-layout">
+                <div className="watch-main-content">
+                    <div className="video-player-wrapper">
+                        <video 
+                            className="video-player-element"
+                            src={video.url}
+                            controls
+                            autoPlay
+                            poster={video.thumbnail_url}
+                        >
+                            Tu navegador no soporta la reproducción de videos.
+                        </video>
                     </div>
-                    <div className="watch-description">
-                        <p>{video.description}</p>
+                    <div className="video-details-section">
+                        <h1 className="watch-title">{video.title}</h1>
+                        <div className="watch-metadata-info">
+                            {video.user?.avatar_url ? (
+                                <img src={video.user.avatar_url} alt={video.user.username} className="creator-avatar" />
+                            ) : (
+                                <div className="creator-avatar-placeholder">
+                                  {video.user?.username ? video.user.username.charAt(0).toUpperCase() : video.title.charAt(0).toUpperCase()}
+                                </div>
+                            )}
+                            <div className="creator-text">
+                                <p className="creator-name">{video.user?.username || `Creador ${video.id_user}`}</p>
+                                <p className="upload-date">Subido el {new Date(video.created_at).toLocaleDateString()}</p>
+                            </div>
+                        </div>
+                        <div className="watch-description">
+                            <p>{video.description || "Sin descripción."}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="watch-sidebar">
+                    <h2 className="sidebar-title">Más videos</h2>
+                    <div className="suggested-list">
+                        {suggestedVideos.map(v => (
+                            <Link to={`/watch/${v.id}`} key={v.id} className="suggested-item">
+                                <div className="suggested-thumb">
+                                    <img src={v.thumbnail_url} alt={v.title} />
+                                </div>
+                                <div className="suggested-info">
+                                    <h3 className="suggested-title">{v.title}</h3>
+                                    <p className="suggested-creator">{v.user?.username || 'Usuario'}</p>
+                                    <p className="suggested-date">{new Date(v.created_at).toLocaleDateString()}</p>
+                                </div>
+                            </Link>
+                        ))}
                     </div>
                 </div>
             </div>

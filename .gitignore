@@ -1,1 +1,10 @@
 .env
+server/public/profiles/*
+!server/public/profiles/.gitkeep
+server/public/videos/*
+!server/public/videos/.gitkeep
+node_modules/
+**/__pycache__/
+.DS_Store
+dist/
+build/

@@ -7,7 +7,9 @@ from . import bp
 from .auth import token_required
 from ..extensions import db
 from ..models.user import User
-from flask import request, jsonify
+from flask import request, jsonify, current_app
+import os
+from werkzeug.utils import secure_filename
 
 
 @bp.route('/users', methods=['GET'])
@@ -201,4 +203,52 @@ def delete_user(current_user, user_id):
         return jsonify({'message': 'User deleted'}), 200
     except Exception as e:
         db.session.rollback()
+        return jsonify({'message': f'Error: {str(e)}'}), 500
+
+
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@bp.route('/users/<int:user_id>/avatar', methods=['POST'])
+@token_required
+def upload_avatar(current_user, user_id):
+    """
+    Sube un avatar para el usuario.
+    """
+    try:
+        if current_user.id != user_id:
+            return jsonify({'message': 'Not authorized'}), 403
+
+        if 'file' not in request.files:
+            return jsonify({'message': 'No file part'}), 400
+
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({'message': 'No selected file'}), 400
+
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            public_dir = current_app.static_folder
+            
+            user_dir = os.path.join(public_dir, 'profiles', str(user_id))
+            os.makedirs(user_dir, exist_ok=True)
+            
+            file_path = os.path.join(user_dir, filename)
+            file.save(file_path)
+            
+            avatar_url = f"{request.host_url.rstrip('/')}/public/profiles/{user_id}/{filename}"
+            
+            current_user.avatar_url = avatar_url
+            db.session.commit()
+            
+            return jsonify({
+                'message': 'Avatar uploaded successfully',
+                'avatar_url': avatar_url,
+                'usuario': current_user.to_dict()
+            }), 200
+            
+        return jsonify({'message': 'File type not allowed'}), 400
+    except Exception as e:
         return jsonify({'message': f'Error: {str(e)}'}), 500

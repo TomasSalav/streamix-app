@@ -40,7 +40,7 @@
 
 @media (max-width: 640px) {
   .index-content {
-    padding: 70px 12px 20px 12px;
+    padding: 100px 12px 20px 12px;
   }
   .video-grid {
     grid-template-columns: 1fr;

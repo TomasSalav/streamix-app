@@ -6,7 +6,9 @@ import os
 
 
 def create_app():
-    app = Flask(__name__)
+    public_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'public')
+    os.makedirs(public_dir, exist_ok=True)
+    app = Flask(__name__, static_folder=public_dir, static_url_path='/public')
     app.config.from_object(Config)
 
     from .extensions import db, migrate, cors

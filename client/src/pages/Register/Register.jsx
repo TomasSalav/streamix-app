@@ -3,12 +3,12 @@ import PixelSnow from '../../components/PixelSnow/PixelSnow';
 import SpotlightCard from '../../components/SpotlightCard/SpotlightCard';
 import { useNavigate } from 'react-router-dom';
 import Button from '../../components/Button/Button';
-import useFetch from '../../hooks/useFetch';
+import useApi from '../../services/api';
 import './Register.css';
 
 const Register = () => {
     const navigate = useNavigate();
-    const { data, loading, error, request } = useFetch('http://localhost:5050/api');
+    const { loading, error, signup } = useApi();
 
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
@@ -22,7 +22,7 @@ const Register = () => {
             return;
         }
 
-        const result = await request('/auth/signup', 'POST', { username, email, password });
+        const result = await signup(username, email, password);
         if (result?.token) {
             navigate('/login');
         }

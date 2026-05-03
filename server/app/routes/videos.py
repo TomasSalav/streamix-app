@@ -8,7 +8,11 @@ from .auth import token_required
 from ..extensions import db
 from ..models.video import Video
 from ..models.user import User
-from flask import request, jsonify
+from flask import request, jsonify, current_app
+import os
+import time
+import uuid
+from werkzeug.utils import secure_filename
 
 
 @bp.route('/videos', methods=['GET'])
@@ -73,38 +77,72 @@ def get_video(video_id):
         return jsonify({'message': f'Error: {str(e)}'}), 500
 
 
+ALLOWED_VIDEO_EXTENSIONS = {'mp4', 'mkv', 'webm', 'avi'}
+ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'}
+
+def allowed_file(filename, allowed_set):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_set
+
 @bp.route('/videos', methods=['POST'])
 @token_required
 def create_video(current_user):
     """
-    Sube un nuevo video.
-    
-    BODY (JSON):
-        - title: título del video (requerido)
-        - url: URL del video (requerido)
-        - description: descripción (opcional)
-        - thumbnail_url: URL de miniatura (opcional)
-        - duration: duración en segundos (opcional)
-        
-    Returns:
-        201: Video created
-        400: Missing required data
-        500: Internal error
-        
-    Requiere: Token JWT
+    Sube un nuevo video (multipart/form-data).
     """
     try:
-        data = request.get_json()
+        # Extraemos los datos del formulario (request.form)
+        title = request.form.get('title')
+        description = request.form.get('description', '')
+        
+        # Validaciones básicas de presencia de archivos y campos
+        if not title:
+            return jsonify({'message': 'Missing required data. Se requiere title'}), 400
+            
+        if 'video' not in request.files or 'thumbnail' not in request.files:
+            return jsonify({'message': 'Se requieren archivos de video y miniatura'}), 400
+            
+        video_file = request.files['video']
+        thumbnail_file = request.files['thumbnail']
+        
+        if video_file.filename == '' or thumbnail_file.filename == '':
+            return jsonify({'message': 'Archivos no seleccionados'}), 400
+            
+        # Verificamos que las extensiones sean permitidas
+        if not allowed_file(video_file.filename, ALLOWED_VIDEO_EXTENSIONS):
+            return jsonify({'message': 'Formato de video no permitido'}), 400
+            
+        if not allowed_file(thumbnail_file.filename, ALLOWED_IMAGE_EXTENSIONS):
+            return jsonify({'message': 'Formato de miniatura no permitido'}), 400
 
-        if not data or not data.get('title') or not data.get('url'):
-            return jsonify({'message': 'Missing required data. Se requiere title y url'}), 400
+        # Preparamos la carpeta de destino: server/public/videos/<user_id>/
+        public_dir = current_app.static_folder
+        user_dir = os.path.join(public_dir, 'videos', str(current_user.id))
+        os.makedirs(user_dir, exist_ok=True)
+        
+        # Generamos nombres únicos con timestamp para evitar sobreescritura
+        timestamp = int(time.time())
+        video_filename = f"{timestamp}_video_{secure_filename(video_file.filename)}"
+        thumb_filename = f"{timestamp}_thumb_{secure_filename(thumbnail_file.filename)}"
+        
+        video_path = os.path.join(user_dir, video_filename)
+        thumb_path = os.path.join(user_dir, thumb_filename)
+        
+        # Guardamos físicamente los archivos en el servidor
+        video_file.save(video_path)
+        thumbnail_file.save(thumb_path)
+        
+        # Construimos las URLs públicas para acceder a los archivos
+        base_url = request.host_url.rstrip('/')
+        video_url = f"{base_url}/public/videos/{current_user.id}/{video_filename}"
+        thumbnail_url = f"{base_url}/public/videos/{current_user.id}/{thumb_filename}"
 
+        # Creamos el registro en la base de datos vinculado al usuario actual
         video = Video(
-            title=data['title'],
-            description=data.get('description'),
-            url=data['url'],
-            thumbnail_url=data.get('thumbnail_url'),
-            duration=data.get('duration'),
+            title=title,
+            description=description,
+            url=video_url,
+            thumbnail_url=thumbnail_url,
+            duration=0,
             id_user=current_user.id
         )
 

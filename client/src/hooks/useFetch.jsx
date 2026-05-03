@@ -11,18 +11,23 @@ function useFetch(baseUrl = "") {
         setError(null);
 
         try {
+            // Recuperamos el token de localStorage para la autenticación
             const token = localStorage.getItem("token");
 
+            // Detectamos si el cuerpo es FormData (para subida de archivos)
+            // Si es FormData, no ponemos Content-Type para que el navegador lo haga automáticamente con el boundary
+            const isFormData = body instanceof FormData;
             const options = {
                 method: method.toUpperCase(),
                 headers: {
-                "Content-Type": "application/json",
-                ...(token && { Authorization: `Bearer ${token}` }),
+                    ...(isFormData ? {} : { "Content-Type": "application/json" }),
+                    ...(token && { Authorization: `Bearer ${token}` }),
                 },
             };
 
+            // Preparamos el cuerpo de la petición
             if (body) {
-                options.body = JSON.stringify(body);
+                options.body = isFormData ? body : JSON.stringify(body);
             }
 
             const response = await fetch(baseUrl + endpoint, options);

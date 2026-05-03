@@ -3,27 +3,22 @@ import PixelSnow from '../../components/PixelSnow/PixelSnow';
 import SpotlightCard from '../../components/SpotlightCard/SpotlightCard';
 import { useNavigate } from 'react-router-dom';
 import Button from '../../components/Button/Button';
-import useFetch from '../../hooks/useFetch';
+import useApi from '../../services/api';
 import './Login.css';
 
 const Login = () => {
     const navigate = useNavigate();
-    const { data, loading, error, request } = useFetch('http://localhost:5050/api');
+    const { loading, error, login } = useApi();
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [msgError, setMsgError] = useState(null);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setMsgError(null);
 
-        const result = await request('/auth/login', 'POST', { email, password });
+        const result = await login(email, password);
         if (result?.token) {
-            localStorage.setItem('token', result.token);
             navigate('/');
-        } else if (result?.message) {
-            setMsgError(result.message);
         }
     };
 
@@ -51,7 +46,7 @@ const Login = () => {
                     <p>Bienvenido de nuevo!</p>
                 </div>
                 <form className="login-form" onSubmit={handleSubmit}>
-                    {msgError && <div style={{color: '#f63049', marginBottom: '10px', textAlign: 'center'}}>{msgError}</div>}
+                    {error && <div style={{color: '#f63049', marginBottom: '10px', textAlign: 'center'}}>{error}</div>}
                     <div className="form-group">
                         <label>Email</label>
                         <input 
