@@ -1,117 +1,86 @@
-// Datos de prueba hechos con IA para implementar funcionalidad de prueba
-const mockUsers = [
-    {
-        id: 1,
-        username: "streamix_user",
-        email: "user@streamix.com",
-        password: "password123",
-        created_at: new Date().toISOString()
-    }
-];
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5050/api';
 
-const mockVideos = [
-    {
-        id: 1,
-        title: "Bacilos - Tabaco y Chanel (Official Music Video)",
-        description: "Canciones legendarias que marcaron generaciones. Perfecto para cantar, bailar o recordar los mejores momentos de la música latina.",
-        created_at: new Date().toISOString(),
-        id_user: 1,
-        thumbnail: "https://i.ytimg.com/vi/6JqnbsQpljU/hqdefault.jpg?sqp=-oaymwEjCPYBEIoBSFryq4qpAxUIARUAAAAAGAElAADIQj0AgKJDeAE=&rs=AOn4CLDgy8JfxRIHzrzgFjldn53H4P_dRA",
-        link: "6JqnbsQpljU"
-    },
-    {
-        id: 2,
-        title: "Andres Calamaro - Flaca (Video clip)",
-        description: "Ya puedes conseguir el nuevo álbum de Andrés Calamaro aquí: http://goo.gl/7zOCWB Escúchalo en Spotify: http://goo.gl/DjJNJt",
-        created_at: new Date().toISOString(),
-        id_user: 1,
-        thumbnail: "https://i.ytimg.com/vi/CG7rVuIZugU/hqdefault.jpg?sqp=-oaymwEjCPYBEIoBSFryq4qpAxUIARUAAAAAGAElAADIQj0AgKJDeAE=&rs=AOn4CLAvBYo9latQwGrwf_G54VepnOid2Q",
-        link: "CG7rVuIZugU"
-    },
-    {
-        id: 3,
-        title: "Pablo Alborán - Te he echado de menos (Videoclip oficial)",
-        description: "Music video by Pablo Alboran performing Te he echado de menos. (P) 2012 The copyright in this audiovisual recording is owned by Trimeca Estudios y Producciones S.L. Under exclusive lisence to EMI Music Spain, S.A.",
-        created_at: new Date().toISOString(),
-        id_user: 1,
-        thumbnail: "https://i.ytimg.com/vi/cSUEFDZ3p3k/hqdefault.jpg?sqp=-oaymwEjCPYBEIoBSFryq4qpAxUIARUAAAAAGAElAADIQj0AgKJDeAE=&rs=AOn4CLAV0hUHEjD9wq715Yy9y_ZrpH2y8g",
-        link: "cSUEFDZ3p3k"
-    }
-];
+const getToken = () => localStorage.getItem('token');
 
-// Función sleep para simular tiempo de retraso con el servidor
-const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
-// Función para simular login
-export const mockLogin = async (emailOrUsername, password) => {
-    await sleep(800);
-
-    const user = mockUsers.find(
-        u => u.password === password && (u.username === emailOrUsername || u.email === emailOrUsername)
-    );
-
-    if (!user) {
-        throw new Error("Usuario o contraseña incorrectos");
-    }
-
-    const { password: _, ...userData } = user;
-    return {
-        success: true,
-        msg: "Login exitoso",
-        data: userData,
-        token: `fake-jwt-token-user-${userData.id}`
+const fetchWithAuth = async (endpoint, method = 'GET', body = null) => {
+    const token = getToken();
+    const options = {
+        method: method.toUpperCase(),
+        headers: {
+            'Content-Type': 'application/json',
+            ...(token && { Authorization: `Bearer ${token}` }),
+        },
     };
+    if (body) options.body = JSON.stringify(body);
+
+    const response = await fetch(`${API_URL}${endpoint}`, options);
+    const data = await response.json();
+
+    return { success: response.ok, status: response.status, data };
 };
 
-// Función para simular registro
-export const mockRegister = async (username, email, password) => {
-    await sleep(800);
+// Auth
+export const signup = (username, email, password) => 
+    fetchWithAuth('/auth/signup', 'POST', { username, email, password });
 
-    const userExists = mockUsers.some(u => u.username === username || u.email === email);
-    if (userExists) {
-        throw new Error("El username o email ya están en uso");
+export const login = async (email, password) => {
+    const result = await fetchWithAuth('/auth/login', 'POST', { email, password });
+    if (result.success && result.data.token) {
+        localStorage.setItem('token', result.data.token);
     }
-
-    const newUser = {
-        id: mockUsers.length + 1,
-        username,
-        email,
-        password,
-        created_at: new Date().toISOString()
-    };
-    mockUsers.push(newUser);
-
-    const { password: _, ...userData } = newUser;
-    return {
-        success: true,
-        msg: "Registrado correctamente",
-        data: userData,
-        token: `fake-jwt-token-user-${newUser.id}`
-    };
+    return result;
 };
 
-// Función para simular obtener videos
-export const mockFetchVideos = async () => {
-    await sleep(500);
-
-    return {
-        success: true,
-        data: mockVideos
-    };
+export const logout = async () => {
+    const result = await fetchWithAuth('/auth/logout', 'POST');
+    localStorage.removeItem('token');
+    return result;
 };
 
-// Función para simular obtener un solo video por id
-export const mockGetVideo = async (id) => {
-    await sleep(500);
+export const getCurrentUser = () => fetchWithAuth('/auth/me', 'GET');
 
-    const video = mockVideos.find(v => v.id === parseInt(id));
+// Users
+export const getUsers = () => fetchWithAuth('/users', 'GET');
+export const getUserById = (userId) => fetchWithAuth(`/users/${userId}`, 'GET');
 
-    if (!video) {
-        throw new Error("Video no encontrado");
-    }
+// Videos
+export const getVideos = (page = 1, perPage = 10) => 
+    fetchWithAuth(`/videos?page=${page}&per_page=${perPage}`, 'GET');
 
-    return {
-        success: true,
-        data: video
-    };
+export const getVideoById = (videoId) => fetchWithAuth(`/videos/${videoId}`, 'GET');
+export const getVideosByUser = (userId) => fetchWithAuth(`/users/${userId}/videos`, 'GET');
+export const createVideo = (videoData) => fetchWithAuth('/videos', 'POST', videoData);
+export const updateVideo = (videoId, videoData) => fetchWithAuth(`/videos/${videoId}`, 'PUT', videoData);
+export const deleteVideo = (videoId) => fetchWithAuth(`/videos/${videoId}`, 'DELETE');
+
+// Comments
+export const getComments = (videoId = null, page = 1) => {
+    const endpoint = videoId 
+        ? `/comments?video_id=${videoId}&page=${page}`
+        : `/comments?page=${page}`;
+    return fetchWithAuth(endpoint, 'GET');
 };
+
+export const getCommentById = (commentId) => fetchWithAuth(`/comments/${commentId}`, 'GET');
+export const createComment = (videoId, content) => 
+    fetchWithAuth(`/videos/${videoId}/comments`, 'POST', { content });
+export const updateComment = (commentId, content) => 
+    fetchWithAuth(`/comments/${commentId}`, 'PUT', { content });
+export const deleteComment = (commentId) => fetchWithAuth(`/comments/${commentId}`, 'DELETE');
+
+// Reactions
+export const getReactions = (videoId) => fetchWithAuth(`/videos/${videoId}/reactions`, 'GET');
+export const createReaction = (videoId, reactionType) => 
+    fetchWithAuth(`/videos/${videoId}/reactions`, 'POST', { reaction_type: reactionType });
+
+// Subscriptions
+export const getSubscriptions = () => fetchWithAuth('/subscriptions', 'GET');
+export const getSubscribers = (userId) => fetchWithAuth(`/users/${userId}/subscribers`, 'GET');
+export const subscribe = (userId) => fetchWithAuth(`/users/${userId}/subscribe`, 'POST');
+export const unsubscribe = (userId) => fetchWithAuth(`/users/${userId}/unsubscribe`, 'POST');
+export const checkSubscription = (userId) => fetchWithAuth(`/users/${userId}/is_subscribed`, 'GET');
+
+// Views
+export const getViews = (videoId) => fetchWithAuth(`/videos/${videoId}/views`, 'GET');
+export const createView = (videoId) => fetchWithAuth(`/videos/${videoId}/views`, 'POST');
+export const deleteView = (videoId) => fetchWithAuth(`/videos/${videoId}/views`, 'DELETE');

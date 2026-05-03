@@ -1,7 +1,6 @@
 version: '3.8'
 
 services:
-  # Base de datos PostgreSQL
   db:
     image: postgres:15-alpine
     container_name: streamix-db
@@ -14,14 +13,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
-  # Servidor Flask (API)
+      - "5433:5432"
   server:
     build:
       context: ./server
@@ -34,16 +26,16 @@ services:
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
       DB_NAME: ${DB_NAME}
     ports:
       - "5050:5050"
     depends_on:
       db:
-        condition: service_healthy
+        condition: service_started
     volumes:
       - ./server:/app
 
-  # Frontend React
   client:
     build:
       context: ./client

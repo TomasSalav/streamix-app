@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import NavBar from '../../components/NavBar/NavBar';
 import PixelSnow from '../../components/PixelSnow/PixelSnow';
-import { mockGetVideo } from '../../services/api';
 import './Watch.css';
 
 // Página de reproducción de videos (Mock)
@@ -13,21 +12,21 @@ const Watch = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    useEffect(() => {
-        const fetchVideo = async () => {
-            try {
-                const res = await mockGetVideo(id);
-                if (res.success) {
-                    setVideo(res.data);
-                }
-            } catch (err) {
-                setError(err.message);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchVideo();
-    }, [id]);
+    // useEffect(() => {
+    //     const fetchVideo = async () => {
+    //         try {
+    //             const res = await mockGetVideo(id);
+    //             if (res.success) {
+    //                 setVideo(res.data);
+    //             }
+    //         } catch (err) {
+    //             setError(err.message);
+    //         } finally {
+    //             setLoading(false);
+    //         }
+    //     };
+    //     fetchVideo();
+    // }, [id]);
 
     if (loading) {
         return (

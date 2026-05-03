@@ -60,19 +60,19 @@ def token_required(f):
             try:
                 token = auth_header.split(' ')[1]  # Formato: "Bearer <token>"
             except IndexError:
-                return jsonify({'message': 'Invalid token'}), 401
+                return jsonify({'message': 'Token inválido'}), 401
 
         if not token:
-            return jsonify({'message': 'Token not provided'}), 401
+            return jsonify({'message': 'Token no proporcionado'}), 401
 
         try:
             # Decodifica y verifica el token
             data = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
             current_user = User.query.get(data['user_id'])
             if not current_user:
-                return jsonify({'message': 'User not found'}), 401
+                return jsonify({'message': 'Usuario no encontrado'}), 401
         except jwt.ExpiredSignatureError:
-            return jsonify({'message': 'Token expired'}), 401
+            return jsonify({'message': 'Token expirado'}), 401
         except jwt.InvalidTokenError:
             return jsonify({'message': 'Invalid token'}), 401
 
@@ -107,15 +107,15 @@ def signup():
 
         # Validación de datos requeridos
         if not data or not data.get('username') or not data.get('email') or not data.get('password'):
-            return jsonify({'message': 'Missing username, email or password'}), 400
+            return jsonify({'message': 'Faltan campos requeridos'}), 400
 
         # Verifica si el email ya existe
         if User.query.filter_by(email=data['email']).first():
-            return jsonify({'message': 'Email already registered'}), 400
+            return jsonify({'message': 'Correo electrónico ya registrado'}), 400
 
         # Verifica si el username ya existe
         if User.query.filter_by(username=data['username']).first():
-            return jsonify({'message': 'Username already in use'}), 400
+            return jsonify({'message': 'Nombre de usuario ya en uso'}), 400
 
         # Crea el nuevo usuario
         user = User(
@@ -134,7 +134,7 @@ def signup():
         token = generate_token(user.id)
 
         return jsonify({
-            'message': 'User created exitosamente',
+            'message': 'Usuario creado exitosamente',
             'token': token,
             'usuario': user.to_dict()
         }), 201
@@ -164,20 +164,22 @@ def login():
         data = request.get_json()
 
         if not data or not data.get('email') or not data.get('password'):
-            return jsonify({'message': 'Missing required data. Se requiere email y password'}), 400
+            return jsonify({'message': 'Datos incompletos. Se requiere correo electrónico y contraseña'}), 400
 
-        # Busca usuario por email
-        user = User.query.filter_by(email=data['email']).first()
+        # Busca usuario por email o username
+        user = User.query.filter(
+            (User.email == data['email']) | (User.username == data['email'])
+        ).first()
 
         # Verifica credenciales
         if not user or not user.check_password(data['password']):
-            return jsonify({'message': 'Invalid email or password'}), 401
+            return jsonify({'message': 'Correo electrónico o contraseña incorrectos'}), 401
 
         # Genera token para el usuario
         token = generate_token(user.id)
 
         return jsonify({
-            'message': 'Login successful',
+            'message': 'Inicio de sesión exitoso',
             'token': token,
             'usuario': user.to_dict()
         }), 200

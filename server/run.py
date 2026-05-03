@@ -22,7 +22,8 @@ def wait_for_db(host, user, password, db_name, max_retries=30):
                 host=host,
                 user=user,
                 password=password,
-                dbname='postgres'  # Conectar a la base de datos por defecto
+                dbname='postgres',  # Conectar a la base de datos por defecto
+                port=os.getenv('DB_PORT', '5432')
             )
             conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
             conn.close()
@@ -42,7 +43,8 @@ def create_database_if_not_exists(host, user, password, db_name):
             host=host,
             user=user,
             password=password,
-            dbname='postgres'
+            dbname='postgres',
+            port=os.getenv('DB_PORT', '5432')
         )
         conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
         cursor = conn.cursor()
@@ -84,6 +86,7 @@ if __name__ == "__main__":
     DB_USER = os.getenv('DB_USER', 'streamix_user')
     DB_PASSWORD = os.getenv('DB_PASSWORD', 'streamix_password')
     DB_NAME = os.getenv('DB_NAME', 'streamix')
+    DB_PORT = os.getenv('DB_PORT', '5432')
     
     # Esperar a que PostgreSQL esté disponible
     if not wait_for_db(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME):

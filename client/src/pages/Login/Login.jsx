@@ -1,35 +1,29 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import PixelSnow from '../../components/PixelSnow/PixelSnow';
 import SpotlightCard from '../../components/SpotlightCard/SpotlightCard';
 import { useNavigate } from 'react-router-dom';
 import Button from '../../components/Button/Button';
-import { mockLogin } from '../../services/api';
+import useFetch from '../../hooks/useFetch';
 import './Login.css';
 
 const Login = () => {
-    // Pagina para ingresar su usuario
     const navigate = useNavigate();
+    const { data, loading, error, request } = useFetch('http://localhost:5050/api');
 
-    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
+    const [msgError, setMsgError] = useState(null);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setLoading(true);
-        setError(null);
+        setMsgError(null);
 
-        try {
-            const res = await mockLogin(username, password);
-            if (res.success) {
-                // Ir a index exitosamente
-                navigate('/');
-            }
-        } catch (err) {
-            setError(err.message);
-        } finally {
-            setLoading(false);
+        const result = await request('/auth/login', 'POST', { email, password });
+        if (result?.token) {
+            localStorage.setItem('token', result.token);
+            navigate('/');
+        } else if (result?.message) {
+            setMsgError(result.message);
         }
     };
 
@@ -57,14 +51,14 @@ const Login = () => {
                     <p>Bienvenido de nuevo!</p>
                 </div>
                 <form className="login-form" onSubmit={handleSubmit}>
-                    {error && <div style={{color: '#f63049', marginBottom: '10px', textAlign: 'center'}}>{error}</div>}
+                    {msgError && <div style={{color: '#f63049', marginBottom: '10px', textAlign: 'center'}}>{msgError}</div>}
                     <div className="form-group">
-                        <label>Usuario</label>
+                        <label>Email</label>
                         <input 
-                            type="text" 
-                            placeholder="Ingrese su usuario..." 
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
+                            type="email" 
+                            placeholder="Ingrese su correo..." 
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
                             required 
                         />
                     </div>

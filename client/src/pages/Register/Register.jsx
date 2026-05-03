@@ -3,41 +3,28 @@ import PixelSnow from '../../components/PixelSnow/PixelSnow';
 import SpotlightCard from '../../components/SpotlightCard/SpotlightCard';
 import { useNavigate } from 'react-router-dom';
 import Button from '../../components/Button/Button';
-import { mockRegister } from '../../services/api';
+import useFetch from '../../hooks/useFetch';
 import './Register.css';
 
 const Register = () => {
-    // Página para crear un usuario
     const navigate = useNavigate();
+    const { data, loading, error, request } = useFetch('http://localhost:5050/api');
 
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError(null);
         
         if (password !== confirmPassword) {
-            setError("Las contraseñas no coinciden");
             return;
         }
 
-        setLoading(true);
-
-        try {
-            const res = await mockRegister(username, email, password);
-            if (res.success) {
-                // Ir a login exitosamente
-                navigate('/login');
-            }
-        } catch (err) {
-            setError(err.message);
-        } finally {
-            setLoading(false);
+        const result = await request('/auth/signup', 'POST', { username, email, password });
+        if (result?.token) {
+            navigate('/login');
         }
     };
 
@@ -65,7 +52,7 @@ const Register = () => {
                     <p>Crea tu cuenta!</p>
                 </div>
                 <form className="register-form" onSubmit={handleSubmit}>
-                    {error && <div style={{color: '#f63049', marginBottom: '10px', textAlign: 'center'}}>{error}</div>}
+                    {(error || password !== confirmPassword) && <div style={{color: '#f63049', marginBottom: '10px', textAlign: 'center'}}>{error || 'Las contraseñas no coinciden'}</div>}
                     <div className="form-group">
                         <label>Usuario</label>
                         <input 
