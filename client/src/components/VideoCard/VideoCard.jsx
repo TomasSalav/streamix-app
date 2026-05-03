@@ -1,5 +1,6 @@
 import SpotlightCard from '../SpotlightCard/SpotlightCard';
 import { useNavigate } from 'react-router-dom';
+import defaultAvatar from '../../assets/default.jpg';
 import './VideoCard.css';
 
 // Tarjeta para la preview de los videos
@@ -29,19 +30,19 @@ const VideoCard = ({ video }) => {
         </div>
         <div className="video-info-container">
           <div className="video-avatar-container">
-            {user?.avatar_url ? (
-                <img src={user.avatar_url} alt={user.username} className="video-avatar-img" style={{width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover'}} />
-            ) : (
-                <div className="video-avatar" style={{backgroundColor: '#333', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '14px', fontWeight: 'bold'}}>
-                  {user?.username ? user.username.charAt(0).toUpperCase() : title.charAt(0).toUpperCase()}
-                </div>
-            )}
+            <img 
+              src={(user?.avatar_url && user.avatar_url !== 'null') ? user.avatar_url : defaultAvatar} 
+              alt={user?.username || 'Perfil'} 
+              className="video-avatar-img" 
+              style={{width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover'}}
+              onError={(e) => { e.target.onerror = null; e.target.src = defaultAvatar; }}
+            />
           </div>
           <div className="video-details">
             <h3 className="video-title">{title}</h3>
             <p className="video-username">{user?.username || `Creador ${video.id_user}`}</p>
             <p className="video-metadata">
-              Subido el {dateStr}
+              {video.views_count || 0} vistas • hace {dateStr}
             </p>
           </div>
         </div>

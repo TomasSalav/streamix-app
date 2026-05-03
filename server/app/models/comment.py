@@ -21,5 +21,9 @@ class Comment(db.Model):
             'content': self.content,
             'id_user': self.id_user,
             'id_video': self.id_video,
-            'created_at': self.created_at.isoformat() if self.created_at else None
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'user': {
+                'username': self.user.username if self.user else 'Usuario Desconocido',
+                'avatar_url': self.user.avatar_url if self.user else None
+            }
         }

@@ -74,6 +74,8 @@ def create_view(current_user, video_id):
         if existing_view:
             # Actualiza la fecha de visualización
             existing_view.viewed_at = datetime.utcnow()
+            # Incrementa el contador de vistas del video incluso si ya lo vio
+            video.views_count += 1
             db.session.commit()
             return jsonify({
                 'message': 'View updated',
