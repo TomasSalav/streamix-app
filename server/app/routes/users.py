@@ -22,10 +22,16 @@ def get_users():
         500: Internal error del servidor
     """
     try:
-        users = User.query.all()
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 10, type=int)
+        
+        users = User.query.paginate(page=page, per_page=per_page, error_out=False)
         return jsonify({
             'message': 'Users retrieved',
-            'usuarios': [u.to_dict() for u in users]
+            'usuarios': [u.to_dict() for u in users.items],
+            'total': users.total,
+            'pagina_actual': users.page,
+            'total_paginas': users.pages
         }), 200
     except Exception as e:
         return jsonify({'message': f'Error: {str(e)}'}), 500

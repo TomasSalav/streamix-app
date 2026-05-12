@@ -21,7 +21,8 @@ class Video(db.Model):
     comments: Mapped[list['Comment']] = relationship('Comment', back_populates='video', cascade='all, delete-orphan')
     reactions: Mapped[list['Reaction']] = relationship('Reaction', back_populates='video', cascade='all, delete-orphan')
     views: Mapped[list['View']] = relationship('View', back_populates='video', cascade='all, delete-orphan')
-
+    watch_later_entries: Mapped[list['WatchLater']] = relationship('WatchLater', back_populates='video', cascade='all, delete-orphan')
+    my_list_entries: Mapped[list['MyList']] = relationship('MyList', back_populates='video', cascade='all, delete-orphan')
     def to_dict(self) -> dict:
         return {
             'id': self.id,

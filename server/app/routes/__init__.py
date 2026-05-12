@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify
 
 bp = Blueprint('api', __name__, url_prefix='/api')
 
-from . import auth, users, videos, comments, reactions, subscriptions, views
+from . import auth, users, videos, comments, reactions, subscriptions, views, lists
 
 
 @bp.route('/', methods=['GET'])

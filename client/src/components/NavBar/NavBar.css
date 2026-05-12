@@ -12,6 +12,24 @@
   border-bottom: 1px solid var(--light-red);
 }
 
+.navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.navbar-left i {
+  cursor: pointer;
+  font-size: 1.2rem;
+  color: white;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+.navbar-left i:hover {
+  opacity: 1;
+}
+
 .navbar-logo {
   font-size: 1.5rem;
   font-weight: 700;

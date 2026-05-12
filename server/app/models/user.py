@@ -32,6 +32,8 @@ class User(db.Model):
         cascade='all, delete-orphan'
     )
     views: Mapped[list['View']] = relationship('View', back_populates='user', cascade='all, delete-orphan')
+    watch_later: Mapped[list['WatchLater']] = relationship('WatchLater', back_populates='user', cascade='all, delete-orphan')
+    my_list: Mapped[list['MyList']] = relationship('MyList', back_populates='user', cascade='all, delete-orphan')
 
     def set_password(self, password: str):
         if not self._validate_email(self.email):

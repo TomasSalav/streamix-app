@@ -390,6 +390,56 @@
         "parameters": [{"name": "video_id", "in": "path", "required": true, "type": "integer"}],
         "responses": {"200": {"description": "Vista eliminada"}}
       }
+    },
+    "/users/me/liked": {
+      "get": {
+        "tags": ["Listas"],
+        "summary": "Obtener videos con like",
+        "security": [{"Bearer": []}],
+        "responses": {"200": {"description": "Videos que me gustan"}}
+      }
+    },
+    "/users/me/watch_later": {
+      "get": {
+        "tags": ["Listas"],
+        "summary": "Obtener videos de Ver Más Tarde",
+        "security": [{"Bearer": []}],
+        "responses": {"200": {"description": "Videos de Ver Más Tarde"}}
+      }
+    },
+    "/videos/{video_id}/watch_later": {
+      "post": {
+        "tags": ["Listas"],
+        "summary": "Agregar/Quitar de Ver Más Tarde",
+        "security": [{"Bearer": []}],
+        "parameters": [{"name": "video_id", "in": "path", "required": true, "type": "integer"}],
+        "responses": {"200": {"description": "Eliminado de la lista"}, "201": {"description": "Agregado a la lista"}}
+      }
+    },
+    "/users/me/my_list": {
+      "get": {
+        "tags": ["Listas"],
+        "summary": "Obtener videos de Mi Lista",
+        "security": [{"Bearer": []}],
+        "responses": {"200": {"description": "Videos de Mi Lista"}}
+      }
+    },
+    "/videos/{video_id}/my_list": {
+      "post": {
+        "tags": ["Listas"],
+        "summary": "Agregar/Quitar de Mi Lista",
+        "security": [{"Bearer": []}],
+        "parameters": [{"name": "video_id", "in": "path", "required": true, "type": "integer"}],
+        "responses": {"200": {"description": "Eliminado de la lista"}, "201": {"description": "Agregado a la lista"}}
+      }
+    },
+    "/users/me/subscriptions/videos": {
+      "get": {
+        "tags": ["Listas"],
+        "summary": "Obtener videos de suscripciones",
+        "security": [{"Bearer": []}],
+        "responses": {"200": {"description": "Videos de canales suscritos"}}
+      }
     }
   }
 }

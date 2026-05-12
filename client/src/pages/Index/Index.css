@@ -27,6 +27,11 @@
   width: 100%;
   box-sizing: border-box;
   margin: 0 auto;
+  transition: padding-left 0.3s ease;
+}
+
+.index-content.sidebar-open {
+  padding-left: 264px; /* 240px sidebar + 24px padding */
 }
 
 .video-grid {

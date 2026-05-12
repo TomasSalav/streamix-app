@@ -5,6 +5,7 @@ import PixelSnow from '../../components/PixelSnow/PixelSnow';
 import useApi from '../../services/api';
 import Button from '../../components/Button/Button';
 import defaultAvatar from '../../assets/default.jpg';
+import ConfirmModal from '../../components/ConfirmModal/ConfirmModal';
 import './Watch.css';
 import { useRef } from 'react';
 
@@ -15,7 +16,8 @@ const Watch = () => {
     const {
         loading, error, getVideoById, getVideos,
         getCurrentUser, createView, createReaction, getReactions,
-        getComments, createComment, deleteComment, deleteVideo
+        getComments, createComment, deleteComment, deleteVideo,
+        checkSubscription, subscribe, getWatchLater, toggleWatchLater, getMyList, toggleMyList
     } = useApi();
 
     const [video, setVideo] = useState(null);
@@ -30,6 +32,10 @@ const Watch = () => {
     const [userReaction, setUserReaction] = useState(null);
     const [likes, setLikes] = useState(0);
     const [dislikes, setDislikes] = useState(0);
+    const [isSubscribed, setIsSubscribed] = useState(false);
+    const [inWatchLater, setInWatchLater] = useState(false);
+    const [inMyList, setInMyList] = useState(false);
+    const [confirmModal, setConfirmModal] = useState({ isOpen: false, title: '', message: '', action: null });
     const hasViewed = useRef(false);
 
     useEffect(() => {
@@ -46,7 +52,6 @@ const Watch = () => {
             return null;
         };
 
-        // Obtenemos los detalles del video principal por su ID
         const fetchVideoData = async () => {
             const res = await getVideoById(id);
             if (res?.video) {
@@ -58,7 +63,9 @@ const Watch = () => {
                     hasViewed.current = true;
                     await createView(id);
                 }
+                return res.video;
             }
+            return null;
         };
 
         // Obtenemos una lista de otros videos para la barra lateral (sugerencias)
@@ -86,10 +93,31 @@ const Watch = () => {
             }
         };
 
+        const fetchListsData = async () => {
+             const wlRes = await getWatchLater();
+             if (wlRes?.videos) {
+                 setInWatchLater(wlRes.videos.some(v => v.id.toString() === id));
+             }
+             const mlRes = await getMyList();
+             if (mlRes?.videos) {
+                 setInMyList(mlRes.videos.some(v => v.id.toString() === id));
+             }
+        };
+
         fetchUser().then(user => {
-            fetchReactionsData(user?.id);
+            if (user) {
+                fetchReactionsData(user.id);
+                fetchListsData();
+            }
         });
-        fetchVideoData();
+        fetchVideoData().then(async (vid) => {
+            if (vid && localStorage.getItem('token')) {
+                const subRes = await checkSubscription(vid.id_user);
+                if (subRes && subRes.suscrito !== undefined) {
+                    setIsSubscribed(subRes.suscrito);
+                }
+            }
+        });
         fetchSuggested();
         fetchCommentsData();
     }, [id]);
@@ -142,20 +170,55 @@ const Watch = () => {
         setSubmittingComment(false);
     };
 
-    const handleDeleteVideo = async (e) => {
+    const handleDeleteVideo = (e) => {
         if (e) e.preventDefault();
-        if (window.confirm("¿Estás seguro de que quieres borrar este video? Esta acción no se puede deshacer.")) {
-            await deleteVideo(id);
-            navigate('/');
+        setConfirmModal({
+            isOpen: true,
+            title: 'Borrar Video',
+            message: '¿Estás seguro de que quieres borrar este video? Esta acción no se puede deshacer.',
+            action: async () => {
+                await deleteVideo(id);
+                navigate('/');
+            }
+        });
+    };
+
+    const handleDeleteComment = (commentId, e) => {
+        if (e) e.preventDefault();
+        setConfirmModal({
+            isOpen: true,
+            title: 'Borrar Comentario',
+            message: '¿Estás seguro de que quieres borrar este comentario?',
+            action: async () => {
+                await deleteComment(commentId);
+                setComments(comments.filter(c => c.id !== commentId));
+                setConfirmModal(prev => ({ ...prev, isOpen: false }));
+            }
+        });
+    };
+
+    const handleSubscribe = async () => {
+        if (!currentUser) {
+            alert('Debes iniciar sesión para suscribirte.');
+            return;
+        }
+        if (currentUser.id === video.id_user) return;
+        const res = await subscribe(video.id_user);
+        if (res && res.message) {
+            setIsSubscribed(!isSubscribed);
         }
     };
 
-    const handleDeleteComment = async (commentId, e) => {
-        if (e) e.preventDefault();
-        if (window.confirm("¿Borrar comentario?")) {
-            await deleteComment(commentId);
-            setComments(comments.filter(c => c.id !== commentId));
-        }
+    const handleToggleWatchLater = async () => {
+        if (!currentUser) return alert('Debes iniciar sesión.');
+        const res = await toggleWatchLater(id);
+        if (res) setInWatchLater(res.in_list);
+    };
+
+    const handleToggleMyList = async () => {
+        if (!currentUser) return alert('Debes iniciar sesión.');
+        const res = await toggleMyList(id);
+        if (res) setInMyList(res.in_list);
     };
 
     if (loading && !video) {
@@ -214,7 +277,32 @@ const Watch = () => {
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                             <h1 className="watch-title">{video.title}</h1>
                             {currentUser && currentUser.id === video.id_user && (
-                                <button onClick={handleDeleteVideo} className="delete-btn" style={{ background: 'transparent', border: '1px solid var(--light-red)', color: 'var(--light-red)', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem' }}>
+                                <button 
+                                    onClick={handleDeleteVideo} 
+                                    className="delete-video-btn" 
+                                    style={{ 
+                                        background: 'rgba(246, 48, 73, 0.1)', 
+                                        border: '1px solid var(--light-red)', 
+                                        color: 'var(--light-red)', 
+                                        padding: '8px 16px', 
+                                        borderRadius: '20px', 
+                                        cursor: 'pointer', 
+                                        display: 'flex', 
+                                        alignItems: 'center', 
+                                        gap: '8px', 
+                                        fontSize: '0.9rem',
+                                        fontWeight: '600',
+                                        transition: 'all 0.2s ease'
+                                    }}
+                                    onMouseOver={(e) => {
+                                        e.currentTarget.style.background = 'var(--light-red)';
+                                        e.currentTarget.style.color = 'white';
+                                    }}
+                                    onMouseOut={(e) => {
+                                        e.currentTarget.style.background = 'rgba(246, 48, 73, 0.1)';
+                                        e.currentTarget.style.color = 'var(--light-red)';
+                                    }}
+                                >
                                     <i className="fa-solid fa-trash"></i> Borrar Video
                                 </button>
                             )}
@@ -233,8 +321,25 @@ const Watch = () => {
                                         {video.views_count || 0} vistas • hace {new Date(video.created_at).toLocaleDateString()}
                                     </p>
                                 </div>
+                                {(!currentUser || currentUser.id !== video.id_user) && (
+                                    <button 
+                                        onClick={handleSubscribe} 
+                                        className={`subscribe-btn ${isSubscribed ? 'subscribed' : ''}`}
+                                        style={{ marginLeft: '12px', padding: '8px 16px', borderRadius: '20px', border: 'none', background: isSubscribed ? 'rgba(255,255,255,0.1)' : 'white', color: isSubscribed ? 'white' : 'black', fontWeight: 'bold', cursor: 'pointer', transition: '0.2s' }}
+                                    >
+                                        {isSubscribed ? 'Suscrito' : 'Suscribirse'}
+                                    </button>
+                                )}
                             </div>
-                            <div className="metadata-right">
+                            <div className="metadata-right" style={{gap: '8px', display: 'flex'}}>
+                                <div className="action-buttons" style={{display: 'flex', gap: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '20px', padding: '4px'}}>
+                                    <button onClick={handleToggleWatchLater} className={`reaction-btn ${inWatchLater ? 'active' : ''}`} title="Ver más tarde">
+                                        <i className="fa-solid fa-clock"></i>
+                                    </button>
+                                    <button onClick={handleToggleMyList} className={`reaction-btn ${inMyList ? 'active' : ''}`} title="Mi Lista">
+                                        <i className="fa-solid fa-list"></i>
+                                    </button>
+                                </div>
                                 <div className="reaction-buttons" onClick={(e) => e.stopPropagation()}>
                                     <button
                                         type="button"
@@ -343,6 +448,14 @@ const Watch = () => {
                     </div>
                 </div>
             </div>
+
+            <ConfirmModal 
+                isOpen={confirmModal.isOpen}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                onConfirm={confirmModal.action}
+                onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+            />
         </div>
     );
 };

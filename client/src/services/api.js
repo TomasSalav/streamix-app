@@ -83,6 +83,14 @@ const useApi = () => {
     const createView = (videoId) => request(`/videos/${videoId}/views`, 'POST');
     const deleteView = (videoId) => request(`/videos/${videoId}/views`, 'DELETE');
 
+    // Lists
+    const getLikedVideos = () => request('/users/me/liked', 'GET');
+    const getWatchLater = () => request('/users/me/watch_later', 'GET');
+    const toggleWatchLater = (videoId) => request(`/videos/${videoId}/watch_later`, 'POST');
+    const getMyList = () => request('/users/me/my_list', 'GET');
+    const toggleMyList = (videoId) => request(`/videos/${videoId}/my_list`, 'POST');
+    const getSubscriptionVideos = () => request('/users/me/subscriptions/videos', 'GET');
+
     return {
         data,
         loading,
@@ -115,7 +123,13 @@ const useApi = () => {
         checkSubscription,
         getViews,
         createView,
-        deleteView
+        deleteView,
+        getLikedVideos,
+        getWatchLater,
+        toggleWatchLater,
+        getMyList,
+        toggleMyList,
+        getSubscriptionVideos
     };
 };
 

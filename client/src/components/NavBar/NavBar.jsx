@@ -7,7 +7,7 @@ import UploadVideoModal from '../UploadVideoModal/UploadVideoModal';
 import defaultAvatar from '../../assets/default.jpg';
 import './NavBar.css';
 
-const NavBar = ({ onSearch }) => {
+const NavBar = ({ onSearch, onMenuClick }) => {
     const navigate = useNavigate();
     const { getCurrentUser, logout } = useApi();
     const [user, setUser] = useState(null);
@@ -46,8 +46,16 @@ const NavBar = ({ onSearch }) => {
     return (
         <>
             <nav className="navbar">
-                <div className="navbar-logo">
-                    <h1 onClick={() => navigate('/')} style={{cursor: 'pointer'}}>Streamix</h1>
+                <div className="navbar-left">
+                    {user && onMenuClick && (
+                        <i 
+                            className="fa-solid fa-bars" 
+                            onClick={onMenuClick} 
+                        ></i>
+                    )}
+                    <div className="navbar-logo">
+                        <h1 onClick={() => navigate('/')} style={{cursor: 'pointer'}}>Streamix</h1>
+                    </div>
                 </div>
                 <div className="navbar-links">
                     <i className="fa-solid fa-magnifying-glass"></i>

@@ -1,0 +1,26 @@
+{
+  "name": "streamix-app",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TomasSalav/streamix-app.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/TomasSalav/streamix-app/issues"
+  },
+  "homepage": "https://github.com/TomasSalav/streamix-app#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.60.0",
+    "@types/node": "^25.7.0"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2"
+  }
+}
